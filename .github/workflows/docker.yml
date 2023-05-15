@@ -1,0 +1,43 @@
+name: Build & Push the Docker image
+
+on:
+  push:
+    tags: ['*']
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  DOCKER_AUTH_USERNAME: ${{ github.actor }}
+  DOCKER_AUTH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  DOCKER_IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_AUTH_USERNAME }}
+          password: ${{ env.DOCKER_AUTH_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
