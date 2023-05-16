@@ -14,7 +14,11 @@
 <script>
     const currentUrl = new URL(window.location);
 
-    const socket = new ReconnectingWebSocket(`ws://${currentUrl.host}/api/events`);
+    const webSocketHost = currentUrl.host;
+    const webSocketProtocol = currentUrl.protocol === 'https' ? 'wss' : 'ws';
+    const webSocketUrl = `${webSocketProtocol}://${webSocketHost}/api/events`;
+
+    const socket = new ReconnectingWebSocket(webSocketUrl);
 
     let windowHeight = window.innerHeight;
     let windowWidth = window.innerWidth;
