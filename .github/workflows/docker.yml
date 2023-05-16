@@ -44,5 +44,5 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest
-            ${{ DOCKER_GCS_IMAGE_URL }}:${{ github.ref_name }}
-            ${{ DOCKER_GCS_IMAGE_URL }}:latest
+            ${{ env.DOCKER_GCS_IMAGE_URL }}:${{ github.ref_name }}
+            ${{ env.DOCKER_GCS_IMAGE_URL }}:latest
