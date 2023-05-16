@@ -25,14 +25,14 @@ jobs:
       - name: Log in to Google Cloud Artifact registry
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          registry: ${{ env.GCS_DOCKER_REGISTRY }}
+          registry: ${{ vars.GCS_DOCKER_REGISTRY }}
           username: _json_key
           password: ${{ secrets.GCS_CREDENTIALS_JSON }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         env: 
-          DOCKER_GCS_IMAGE_URL: ${{ env.GCS_DOCKER_REGISTRY }}/${{ env.GCS_PROJECT_ID }}/${{ env.GCS_DOCKER_IMAGE_NAME }}
+          DOCKER_GCS_IMAGE_URL: ${{ vars.GCS_DOCKER_REGISTRY }}/${{ vars.GCS_PROJECT_ID }}/${{ vars.GCS_DOCKER_IMAGE_NAME }}
         with:
           push: true
           context: .
