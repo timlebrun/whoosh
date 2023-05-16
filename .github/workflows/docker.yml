@@ -5,10 +5,7 @@ on:
     tags: ['*']
 
 env:
-  DOCKER_REGISTRY: ghcr.io
-  DOCKER_AUTH_USERNAME: ${{ github.actor }}
-  DOCKER_AUTH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-  DOCKER_IMAGE_NAME: ${{ github.repository }}
+  DOCKER_GCS_IMAGE_URL: ${{ env.GCS_DOCKER_REGISTRY }}/${{ env.GCS_PROJECT_ID }}/${{ env.GCS_DOCKER_IMAGE_NAME }}
 
 jobs:
   build-and-push-image:
@@ -21,23 +18,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to the Container registry
+      - name: Log in to Github Container registry
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          registry: ${{ env.DOCKER_REGISTRY }}
-          username: ${{ env.DOCKER_AUTH_USERNAME }}
-          password: ${{ env.DOCKER_AUTH_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
         with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
+          credentials_json: ${{ secrets.GCS_CREDENTIALS_JSON }}
+
+      - name: Log in to Google Cloud Artifact registry
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          registry: ${{ env.GCS_DOCKER_REGISTRY }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
-          context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          context: .
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:latest
+            ${{ DOCKER_GCS_IMAGE_URL }}:${{ github.ref_name }}
+            ${{ DOCKER_GCS_IMAGE_URL }}:latest
