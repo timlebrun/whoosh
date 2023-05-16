@@ -4,9 +4,6 @@ on:
   push:
     tags: ['*']
 
-env:
-  DOCKER_GCS_IMAGE_URL: ${{ env.GCS_DOCKER_REGISTRY }}/${{ env.GCS_PROJECT_ID }}/${{ env.GCS_DOCKER_IMAGE_NAME }}
-
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -39,6 +36,8 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        env: 
+          DOCKER_GCS_IMAGE_URL: ${{ env.GCS_DOCKER_REGISTRY }}/${{ env.GCS_PROJECT_ID }}/${{ env.GCS_DOCKER_IMAGE_NAME }}
         with:
           push: true
           context: .
