@@ -29,6 +29,7 @@
     let mouseLastDown = null;
     let mouseNeedsRender = false;
     const mousePoints = [];
+    let mousePointGroups = {}; // for debug mainly
 
     function easeInOutCirc(x) {
         return x < 0.5
@@ -88,6 +89,8 @@
 
             return groups;
         }, {});
+
+        mousePointGroups = pointGroups;
 
         for (const groupKey in pointGroups) {
             if (!pointGroups[groupKey]) continue;
