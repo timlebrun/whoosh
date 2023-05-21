@@ -6,7 +6,7 @@
 <div class="container">
     {{--  <h1 class="display-1 align-middle">WHOOSH</h1>  --}}
 
-    <canvas id="canvas" touch-action="none" width="640" height="640" style="background: white;">
+    <canvas id="canvas" touch-action="none" style="background: white; position: absolute; top: 0; left: 0;">
         Opps, you cannot play draw N guess with this browser!
     </canvas>
 </div>
@@ -19,9 +19,6 @@
     const webSocketUrl = `${webSocketProtocol}://${webSocketHost}/api/events`;
 
     const socket = new ReconnectingWebSocket(webSocketUrl);
-
-    let windowHeight = window.innerHeight;
-    let windowWidth = window.innerWidth;
 
     const canvas = document.getElementById('canvas');
     const canvasContext = canvas.getContext('2d');
@@ -100,32 +97,25 @@
             for (let pointIndex = 0; pointIndex < groupPoints.length; pointIndex++) {
                 const point = groupPoints[pointIndex];
 
-                // if (point.t === 'mouse') canvasContext.fillStyle = 'black';
-                // if (point.t === 'pen') canvasContext.fillStyle = 'purple';
-                // if (point.t === 'touch') canvasContext.fillStyle = 'red';
-
                 const pointLifetime = currentTimestamp - point.d;
                 const pointTtl = Math.min(pointLifetime / 3000, 1);
                 const pointOpacity = easeInOutCirc(1 - pointTtl);
 
                 canvasContext.fillStyle = `rgba(0,0,0,${pointOpacity})`;
+                canvasContext.lineWidth = 5;
 
-                // canvasContext.fillRect(
-                //     point.x * canvas.width,
-                //     point.y * canvas.height,
-                //     10 * point.p + 2,
-                //     10 * point.p + 2,
-                // );
+                if (point.t === 'mouse') canvasContext.strokeStyle = `rgba(0,0,0,${pointOpacity})`;
+                if (point.t === 'pen') canvasContext.strokeStyle = `rgba(128,0,128,${pointOpacity})`; // purple
+                if (point.t === 'touch') canvasContext.strokeStyle = `rgba(255,0,0,${pointOpacity})`; // red
 
                 const previousPoint = groupPoints[pointIndex - 1];
 
                 if (previousPoint && previousPoint.p) {
-                    canvasContext.lineWidth = 5;
-                    canvasContext.strokeStyle = `rgba(0,0,0,${pointOpacity})`;
+                    // canvasContext.strokeStyle = `rgba(0,0,0,${pointOpacity})`;
 
                     canvasContext.beginPath(); // Start a new path
-                    canvasContext.moveTo(previousPoint.x * canvas.height, previousPoint.y * canvas.width); // Move the pen to (30, 50)
-                    canvasContext.lineTo(point.x * canvas.height, point.y * canvas.width); // Draw a line to (150, 100)
+                    canvasContext.moveTo(previousPoint.x * canvas.width, previousPoint.y * canvas.height); // Move the pen to (30, 50)
+                    canvasContext.lineTo(point.x * canvas.width, point.y * canvas.height); // Draw a line to (150, 100)
                     canvasContext.stroke(); // Render the path
                 }
             }
@@ -139,7 +129,7 @@
     }
 
     function handleWindowResize() {
-        // canvas.height = window.innerHeight;
+        canvas.height = window.innerHeight;
         canvas.width = window.innerWidth;
 
         draw(); // forces draw to avoid white flash
@@ -153,12 +143,12 @@
     // Écouter les messages
     socket.addEventListener('message', function (message) {
         const messageData = JSON.parse(message.data);
+
         if (messageData.event === 'point') {
             mousePoints.push(messageData.data);
-            console.log('POING', message.data);
+            console.debug('POING', messageData);
         }
     });
-
 
     canvas.addEventListener('pointerup', handlePointerUp, false);
     canvas.addEventListener('pointerdown', handlePointerDown, false);
@@ -166,6 +156,7 @@
 
     window.onresize = handleWindowResize;
 
+    handleWindowResize();
     startRender(draw);
 
 </script>
