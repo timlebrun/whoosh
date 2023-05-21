@@ -23,10 +23,10 @@
     const canvas = document.getElementById('canvas');
     const canvasContext = canvas.getContext('2d');
 
-    let mouseLastDown = null;
-    let mouseNeedsRender = false;
     const mousePoints = [];
-    let mousePointGroups = {}; // for debug mainly
+
+    const mousePointerDown = {};
+    let mouseLastDown = null;
 
     function easeInOutCirc(x) {
         return x < 0.5
@@ -42,12 +42,16 @@
     function handlePointerDown(event) {
         mouseLastDown = Date.now();
 
+        mousePointerDown[event.pointerId] = true;
+
         const eventPoint = extractPointerEventPoint(event);
         pushEventPoint(eventPoint);
     }
 
     function handlePointerUp(e) {
         mouseLastDown = null;
+
+        mousePointerDown[event.pointerId] = false;
 
         const eventPoint = extractPointerEventPoint(event);
         pushEventPoint(eventPoint);
@@ -66,11 +70,13 @@
         const relativeX = event.clientX - elementRect.left;
         const relativeY = event.clientY - elementRect.top;
 
+        const pointerPressure = mousePointerDown[event.pointerId] ? 0.5 : 0;
+
         return {
             t: event.pointerType,
             x: relativeX / event.target.width,
             y: relativeY / event.target.height,
-            p: event.pressure,
+            p: pointerPressure,
         };
     }
 
@@ -86,8 +92,6 @@
 
             return groups;
         }, {});
-
-        mousePointGroups = pointGroups;
 
         for (const groupKey in pointGroups) {
             if (!pointGroups[groupKey]) continue;
